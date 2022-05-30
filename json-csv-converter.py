@@ -11,7 +11,7 @@ try:
     print("Which file do you want to convert?")
     filename = input("Filename: ")
     extension = filename.split(".")[-1].lower()
-    
+
     f = open(filename)
 
     if extension == "csv":
@@ -37,32 +37,27 @@ else:
 
         for i in range(1, len(data)):
             obj = OrderedDict()
-            for j in range(0,len(keys)):
-                if len(data[i][j]) > 0:
-                    obj[keys[j]] = data[i][j]
-                else:
-                    obj[keys[j]] = None
+            for j in range(len(keys)):
+                obj[keys[j]] = data[i][j] if len(data[i][j]) > 0 else None
             converted.append(obj)
-        
+
     # CONVERT JSON TO CSV
     if extension == "json":
 
         # get all keys in json objects
         keys = []
-        for i in range(0,len(data)):
+        for i in range(len(data)):
             for j in data[i]:
                 if j not in keys:
                     keys.append(j)
-        
-        # map data in each row to key index
-        converted = []
-        converted.append(keys)
 
-        for i in range(0,len(data)):
+        # map data in each row to key index
+        converted = [keys]
+        for i in range(len(data)):
             row = []
-            for j in range(0,len(keys)):
-                if keys[j] in data[i]:
-                    row.append(data[i][keys[j]])
+            for key in keys:
+                if key in data[i]:
+                    row.append(data[i][key])
                 else:
                     row.append(None)
             converted.append(row)
@@ -71,20 +66,22 @@ else:
     converted_file_basename = os.path.basename(filename).split(".")[0]
     converted_file_extension = ".json" if extension == "csv" else ".csv"
 
-    if(os.path.isfile(converted_file_basename + converted_file_extension)):
+    if (os.path.isfile(converted_file_basename + converted_file_extension)):
         counter = 1
-        while os.path.isfile(converted_file_basename + " (" + str(counter) + ")" + converted_file_extension):
+        while os.path.isfile(
+            f"{converted_file_basename} ({counter}){converted_file_extension}"
+        ):
             counter += 1
-        converted_file_basename = converted_file_basename + " (" + str(counter) + ")"
-    
+        converted_file_basename = f"{converted_file_basename} ({counter})"
+
     try:
-        if converted_file_extension == ".json":
-            with open(converted_file_basename + converted_file_extension, 'w') as outfile:
-                json.dump(converted, outfile)
-        elif converted_file_extension == ".csv":
+        if converted_file_extension == ".csv":
             with open(converted_file_basename + converted_file_extension, 'w') as outfile:
                 writer = csv.writer(outfile)
                 writer.writerows(converted)
+        elif converted_file_extension == ".json":
+            with open(converted_file_basename + converted_file_extension, 'w') as outfile:
+                json.dump(converted, outfile)
     except:
         print("Error creating file ... exiting")
     else:
